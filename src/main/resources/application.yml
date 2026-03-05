@@ -5,9 +5,9 @@ spring:
     active: local
 
 jwt:
-  secret: foodeat-jwt-secret-key-min-256-bits-lgcns-project-2026
-  access-token-expiration: 7200000
-  refresh-token-expiration: 1209600000
+  secret: ${JWT_SECRET:your-secret-key-here-min-256-bits}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:7200000}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:1209600000}
 
 springdoc:
   swagger-ui:
