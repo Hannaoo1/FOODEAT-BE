@@ -1,0 +1,14 @@
+package com.lgcns.foodeat.domain.auth.dto.request;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReissueRequest {
+    @NotBlank(message = "Refresh token은 필수입니다")
+    private String refreshToken;
+}

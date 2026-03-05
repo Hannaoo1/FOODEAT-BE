@@ -5,6 +5,7 @@ import com.lgcns.foodeat.domain.auth.dto.request.SignupRequest;
 import com.lgcns.foodeat.domain.auth.dto.response.LoginResponse;
 import com.lgcns.foodeat.domain.user.entity.User;
 import com.lgcns.foodeat.domain.user.repository.UserRepository;
+import com.lgcns.foodeat.global.exception.*;
 import com.lgcns.foodeat.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,6 +19,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AuthService {
+    private static final String REFRESH_TOKEN_PREFIX = "RT:";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -26,10 +29,10 @@ public class AuthService {
     @Transactional
     public Long signup(SignupRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("이미 사용 중인 이메일입니다");
+            throw new DuplicateEmailException();
         }
         if (userRepository.existsByNickname(request.getNickname())) {
-            throw new RuntimeException("이미 사용 중인 닉네임입니다");
+            throw new DuplicateNicknameException();
         }
 
         User user = User.builder()
@@ -45,10 +48,10 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(UserNotFoundException::new);
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("비밀번호가 일치하지 않습니다");
+            throw new InvalidPasswordException();
         }
 
         String accessToken = jwtUtil.generateAccessToken(user.getId());
@@ -56,12 +59,55 @@ public class AuthService {
 
         if (Boolean.TRUE.equals(request.getAutoLogin())) {
             refreshToken = jwtUtil.generateRefreshToken(user.getId());
-            redisTemplate.opsForValue().set(refreshToken, String.valueOf(user.getId()), 14, TimeUnit.DAYS);
+            redisTemplate.opsForValue().set(
+                    REFRESH_TOKEN_PREFIX + user.getId(),
+                    refreshToken,
+                    14,
+                    TimeUnit.DAYS
+            );
         }
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .foodtiNumber(user.getFoodtiNumber())
+                .build();
+    }
+
+    public void logout(Long userId) {
+        redisTemplate.delete(REFRESH_TOKEN_PREFIX + userId);
+    }
+
+    public LoginResponse reissue(String refreshToken) {
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new InvalidTokenException();
+        }
+
+        Long userId = jwtUtil.getUserIdFromToken(refreshToken);
+        String storedToken = redisTemplate.opsForValue().get(REFRESH_TOKEN_PREFIX + userId);
+
+        if (storedToken == null || !storedToken.equals(refreshToken)) {
+            throw new InvalidTokenException();
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        String newAccessToken = jwtUtil.generateAccessToken(userId);
+        String newRefreshToken = jwtUtil.generateRefreshToken(userId);
+
+        redisTemplate.opsForValue().set(
+                REFRESH_TOKEN_PREFIX + userId,
+                newRefreshToken,
+                14,
+                TimeUnit.DAYS
+        );
+
+        return LoginResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
                 .userId(user.getId())
                 .nickname(user.getNickname())
                 .foodtiNumber(user.getFoodtiNumber())
