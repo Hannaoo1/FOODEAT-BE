@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: foodeat
+  profiles:
+    active: local
+
+jwt:
+  secret: foodeat-jwt-secret-key-min-256-bits-lgcns-project-2026
+  access-token-expiration: 7200000
+  refresh-token-expiration: 1209600000
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
