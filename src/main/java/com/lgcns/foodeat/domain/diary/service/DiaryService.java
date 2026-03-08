@@ -1,0 +1,108 @@
+package com.lgcns.foodeat.domain.diary.service;
+
+import com.lgcns.foodeat.domain.diary.dto.request.*;
+import com.lgcns.foodeat.domain.diary.dto.response.*;
+import com.lgcns.foodeat.domain.diary.entity.*;
+import com.lgcns.foodeat.domain.diary.repository.*;
+import com.lgcns.foodeat.domain.user.entity.User;
+import com.lgcns.foodeat.domain.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class DiaryService {
+
+    private final DiaryRepository diaryRepository;
+    private final DiaryImageRepository diaryImageRepository;
+    private final UserRepository userRepository;
+
+    @Transactional
+    public Long createDiary(Long userId, DiaryCreateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+
+        FoodDiary diary = FoodDiary.builder()
+                .user(user)
+                .restaurantName(request.getRestaurantName())
+                .restaurantAddress(request.getRestaurantAddress())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .visitedAt(request.getVisitedAt())
+                .category(request.getCategory())
+                .menuName(request.getMenuName())
+                .price(request.getPrice())
+                .rating(request.getRating())
+                .comment(request.getComment())
+                .build();
+
+        FoodDiary savedDiary = diaryRepository.save(diary);
+        return savedDiary.getId();
+    }
+
+    public Page<DiaryListResponse> getDiaries(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FoodDiary> diaries = diaryRepository.findByUserIdAndNotDeleted(userId, pageable);
+
+        return diaries.map(diary -> {
+            List<DiaryImage> images = diaryImageRepository.findByDiaryIdOrderByDisplayOrder(diary.getId());
+            String thumbnailUrl = images.isEmpty() ? null : images.get(0).getImageUrl();
+            return DiaryListResponse.from(diary, thumbnailUrl);
+        });
+    }
+
+    public DiaryResponse getDiary(Long diaryId, Long userId) {
+        FoodDiary diary = diaryRepository.findByIdAndNotDeleted(diaryId);
+
+        if (diary == null) {
+            throw new RuntimeException("일지를 찾을 수 없습니다");
+        }
+
+        if (!diary.getUser().getId().equals(userId)) {
+            throw new RuntimeException("권한이 없습니다");
+        }
+
+        List<String> imageUrls = diaryImageRepository.findByDiaryIdOrderByDisplayOrder(diaryId)
+                .stream()
+                .map(DiaryImage::getImageUrl)
+                .collect(Collectors.toList());
+
+        return DiaryResponse.from(diary, imageUrls);
+    }
+
+    @Transactional
+    public void updateDiary(Long diaryId, Long userId, DiaryUpdateRequest request) {
+        FoodDiary diary = diaryRepository.findByIdAndNotDeleted(diaryId);
+
+        if (diary == null) {
+            throw new RuntimeException("일지를 찾을 수 없습니다");
+        }
+
+        if (!diary.getUser().getId().equals(userId)) {
+            throw new RuntimeException("권한이 없습니다");
+        }
+
+        diary.update(request.getMenuName(), request.getPrice(),
+                request.getRating(), request.getComment());
+    }
+
+    @Transactional
+    public void deleteDiary(Long diaryId, Long userId) {
+        FoodDiary diary = diaryRepository.findByIdAndNotDeleted(diaryId);
+
+        if (diary == null) {
+            throw new RuntimeException("일지를 찾을 수 없습니다");
+        }
+
+        if (!diary.getUser().getId().equals(userId)) {
+            throw new RuntimeException("권한이 없습니다");
+        }
+
+        diary.delete();
+    }
+}
