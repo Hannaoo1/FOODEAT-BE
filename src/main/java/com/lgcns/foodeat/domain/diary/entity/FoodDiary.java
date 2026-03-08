@@ -27,10 +27,8 @@ public class FoodDiary {
 
     private String restaurantAddress;  // 서울시 광진구...
 
-    @Column(precision = 10, scale = 8)
     private Double latitude;
 
-    @Column(precision = 11, scale = 8)
     private Double longitude;
 
     // 작성 정보

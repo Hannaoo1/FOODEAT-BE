@@ -13,6 +13,7 @@ public class DiaryUpdateRequest {
 
     private Integer price;
 
+    @NotNull
     @Min(1) @Max(5)
     private Integer rating;
 

@@ -6,7 +6,9 @@ import com.lgcns.foodeat.domain.diary.entity.*;
 import com.lgcns.foodeat.domain.diary.repository.*;
 import com.lgcns.foodeat.domain.user.entity.User;
 import com.lgcns.foodeat.domain.user.repository.UserRepository;
+import com.lgcns.foodeat.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +27,7 @@ public class DiaryService {
     @Transactional
     public Long createDiary(Long userId, DiaryCreateRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new BusinessException("사용자를 찾을 수 없습니다", HttpStatus.NOT_FOUND));
 
         FoodDiary diary = FoodDiary.builder()
                 .user(user)
@@ -60,11 +62,11 @@ public class DiaryService {
         FoodDiary diary = diaryRepository.findByIdAndNotDeleted(diaryId);
 
         if (diary == null) {
-            throw new RuntimeException("일지를 찾을 수 없습니다");
+            throw new BusinessException("일지를 찾을 수 없습니다", HttpStatus.NOT_FOUND);
         }
 
         if (!diary.getUser().getId().equals(userId)) {
-            throw new RuntimeException("권한이 없습니다");
+            throw new BusinessException("권한이 없습니다", HttpStatus.FORBIDDEN);
         }
 
         List<String> imageUrls = diaryImageRepository.findByDiaryIdOrderByDisplayOrder(diaryId)
@@ -80,11 +82,11 @@ public class DiaryService {
         FoodDiary diary = diaryRepository.findByIdAndNotDeleted(diaryId);
 
         if (diary == null) {
-            throw new RuntimeException("일지를 찾을 수 없습니다");
+            throw new BusinessException("일지를 찾을 수 없습니다", HttpStatus.NOT_FOUND);
         }
 
         if (!diary.getUser().getId().equals(userId)) {
-            throw new RuntimeException("권한이 없습니다");
+            throw new BusinessException("권한이 없습니다", HttpStatus.FORBIDDEN);
         }
 
         diary.update(request.getMenuName(), request.getPrice(),
@@ -96,11 +98,11 @@ public class DiaryService {
         FoodDiary diary = diaryRepository.findByIdAndNotDeleted(diaryId);
 
         if (diary == null) {
-            throw new RuntimeException("일지를 찾을 수 없습니다");
+            throw new BusinessException("일지를 찾을 수 없습니다", HttpStatus.NOT_FOUND);
         }
 
         if (!diary.getUser().getId().equals(userId)) {
-            throw new RuntimeException("권한이 없습니다");
+            throw new BusinessException("권한이 없습니다", HttpStatus.FORBIDDEN);
         }
 
         diary.delete();

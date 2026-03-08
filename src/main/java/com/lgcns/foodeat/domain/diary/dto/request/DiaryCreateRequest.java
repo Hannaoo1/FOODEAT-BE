@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class DiaryCreateRequest {
 
-    // 식당 정보 (프카카오 API에서 받아옴)
+    // 식당 정보 (카카오 API에서 받아옴)
     @NotBlank
     @Size(max = 100)
     private String restaurantName;
