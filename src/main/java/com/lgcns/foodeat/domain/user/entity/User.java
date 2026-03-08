@@ -25,8 +25,9 @@ public class User {
     @Column(unique = true, nullable = false)
     private String nickname;
 
-    private Double homeLatitude;
-    private Double homeLongitude;
+    private String homeAddress;      // 집 주소
+    private Double homeLatitude;     // 집 위도
+    private Double homeLongitude;    // 집 경도
     private Integer foodtiNumber;
 
     @Builder.Default
