@@ -2,7 +2,6 @@ package com.lgcns.foodeat.domain.diary.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,28 +11,24 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class DiaryImage {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "diary_id", nullable = false)
-    @Setter
-    private Diary diary;
+    private FoodDiary diary;
+
+    @Column(nullable = false, length = 500)
+    private String imageUrl;  // S3 URL
 
     @Column(nullable = false)
-    private String imageUrl;
-
-    @Column(nullable = false)
-    private String s3Key;
-
-    private Integer displayOrder;
+    private Integer displayOrder;  // 0, 1, 2
 
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now();
     }
 }
