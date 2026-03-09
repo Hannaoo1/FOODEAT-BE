@@ -47,15 +47,17 @@ public class DiaryService {
         return savedDiary.getId();
     }
 
-    public Page<DiaryListResponse> getDiaries(Long userId, int page, int size) {
+    public DiaryPageResponse getDiaries(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<FoodDiary> diaries = diaryRepository.findByUserIdAndNotDeleted(userId, pageable);
 
-        return diaries.map(diary -> {
+        Page<DiaryListResponse> diaryPage = diaries.map(diary -> {
             List<DiaryImage> images = diaryImageRepository.findByDiaryIdOrderByDisplayOrder(diary.getId());
             String thumbnailUrl = images.isEmpty() ? null : images.get(0).getImageUrl();
             return DiaryListResponse.from(diary, thumbnailUrl);
         });
+
+        return DiaryPageResponse.from(diaryPage);
     }
 
     public DiaryResponse getDiary(Long diaryId, Long userId) {
