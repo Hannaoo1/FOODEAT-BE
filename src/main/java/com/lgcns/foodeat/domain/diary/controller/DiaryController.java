@@ -3,7 +3,7 @@ package com.lgcns.foodeat.domain.diary.controller;
 import com.lgcns.foodeat.domain.diary.dto.request.DiaryCreateRequest;
 import com.lgcns.foodeat.domain.diary.dto.request.DiaryUpdateRequest;
 import com.lgcns.foodeat.domain.diary.dto.response.DiaryCreateResponse;
-import com.lgcns.foodeat.domain.diary.dto.response.DiaryListResponse;
+import com.lgcns.foodeat.domain.diary.dto.response.DiaryPageResponse;
 import com.lgcns.foodeat.domain.diary.dto.response.DiaryResponse;
 import com.lgcns.foodeat.domain.diary.service.DiaryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,13 +40,13 @@ public class DiaryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(DiaryCreateResponse.of(diaryId));
     }
 
-    @Operation(summary = "식사 일지 목록 조회")
+    @Operation(summary = "식사 일지 목록 조회 (무한 스크롤)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content)
     })
     @GetMapping
-    public ResponseEntity<Page<DiaryListResponse>> getDiaries(
+    public ResponseEntity<DiaryPageResponse> getDiaries(
             @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

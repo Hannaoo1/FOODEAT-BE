@@ -7,7 +7,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @Schema(description = "식사 일지 작성 응답")
-public class DiaryCreateResponse {
+public class
+DiaryCreateResponse {
 
     @Schema(description = "생성된 일지 ID", example = "1")
     private Long diaryId;
