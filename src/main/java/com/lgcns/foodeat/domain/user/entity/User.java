@@ -43,4 +43,14 @@ public class User {
     public void updateFoodtiNumber(Integer foodtiNumber) {
         this.foodtiNumber = foodtiNumber;
     }
+
+    public void incrementDiaryCount() {
+        this.diaryCount++;
+    }
+
+    public void decrementDiaryCount() {
+        if (this.diaryCount > 0) {
+            this.diaryCount--;
+        }
+    }
 }
