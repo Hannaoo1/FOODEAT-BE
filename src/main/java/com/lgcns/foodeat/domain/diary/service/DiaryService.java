@@ -44,6 +44,7 @@ public class DiaryService {
                 .build();
 
         FoodDiary savedDiary = diaryRepository.save(diary);
+        user.incrementDiaryCount();
         return savedDiary.getId();
     }
 
@@ -108,5 +109,6 @@ public class DiaryService {
         }
 
         diary.delete();
+        diary.getUser().decrementDiaryCount();
     }
 }
