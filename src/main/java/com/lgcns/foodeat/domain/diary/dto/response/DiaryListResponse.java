@@ -25,6 +25,9 @@ public class DiaryListResponse {
     @Schema(description = "별점 (1~5)", example = "5")
     private Integer rating;
 
+    @Schema(description = "가격", example = "15000")
+    private Integer price;
+
     @Schema(description = "방문 날짜", example = "2026-03-08")
     private LocalDate visitedAt;
 
@@ -38,6 +41,7 @@ public class DiaryListResponse {
                 .menuName(diary.getMenuName())
                 .category(diary.getCategory())
                 .rating(diary.getRating())
+                .price(diary.getPrice())
                 .visitedAt(diary.getVisitedAt())
                 .thumbnailUrl(thumbnailUrl)
                 .build();
