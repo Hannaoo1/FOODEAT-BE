@@ -1,0 +1,19 @@
+language: "ko"
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  path_instructions:
+    - path: "**/*.java"
+      instructions: |
+        - Spring Boot 컨벤션을 따르는지 확인
+        - 예외 처리 시 BusinessException 사용 여부 확인
+        - @Transactional 적절히 사용했는지 확인
+        - Swagger 문서화(@Schema, @ApiResponses) 확인
+        - DTO 네이밍 규칙 확인 (Dto 접미사 사용 금지)
+
+chat:
+  auto_reply: true
