@@ -1,6 +1,7 @@
 package com.lgcns.foodeat.domain.image.controller;
 
 import com.lgcns.foodeat.domain.image.dto.response.ImageUploadResponse;
+import com.lgcns.foodeat.global.exception.BusinessException;
 import com.lgcns.foodeat.infra.S3Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -38,7 +39,7 @@ public class ImageController {
             @RequestParam("files") List<MultipartFile> files) {
 
         if (files.size() > 3) {
-            throw new IllegalArgumentException("이미지는 최대 3장까지 업로드 가능합니다.");
+            throw new BusinessException("이미지는 최대 3장까지 업로드 가능합니다.", HttpStatus.BAD_REQUEST);
         }
 
         List<String> imageUrls = new ArrayList<>();
