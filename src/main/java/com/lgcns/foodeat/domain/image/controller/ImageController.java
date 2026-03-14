@@ -1,6 +1,7 @@
 package com.lgcns.foodeat.domain.image.controller;
 
 import com.lgcns.foodeat.domain.image.dto.response.ImageUploadResponse;
+import com.lgcns.foodeat.global.exception.BusinessException;
 import com.lgcns.foodeat.infra.S3Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,13 +27,6 @@ public class ImageController {
 
     private final S3Service s3Service;
 
-    /**
-     * Uploads up to three diary images to S3 and returns the uploaded images' URLs.
-     *
-     * @param files list of multipart image files to upload (maximum 3)
-     * @return an ImageUploadResponse containing the uploaded images' URLs
-     * @throws IllegalArgumentException if more than 3 files are provided
-     */
     @Operation(summary = "식사 일지 이미지 업로드 (최대 3장)")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "업로드 성공"),
@@ -45,7 +39,7 @@ public class ImageController {
             @RequestParam("files") List<MultipartFile> files) {
 
         if (files.size() > 3) {
-            throw new IllegalArgumentException("이미지는 최대 3장까지 업로드 가능합니다.");
+            throw new BusinessException("이미지는 최대 3장까지 업로드 가능합니다.", HttpStatus.BAD_REQUEST);
         }
 
         List<String> imageUrls = new ArrayList<>();
@@ -57,12 +51,6 @@ public class ImageController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ImageUploadResponse.of(imageUrls));
     }
 
-    /**
-     * Deletes the image located at the given URL from storage.
-     *
-     * @param imageUrl the URL of the image to delete
-     * @return a response with HTTP 204 No Content when the image is successfully deleted
-     */
     @Operation(summary = "이미지 삭제")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "삭제 성공"),

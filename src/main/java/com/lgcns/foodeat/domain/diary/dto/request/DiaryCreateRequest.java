@@ -1,8 +1,10 @@
 package com.lgcns.foodeat.domain.diary.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -38,4 +40,8 @@ public class DiaryCreateRequest {
 
     @Size(max = 300)
     private String comment;  // 코멘트 (최대 300자)
+
+    @Schema(description = "업로드된 이미지 URL 목록 (최대 3장)", example = "[\"https://s3.../image1.jpg\"]")
+    @Size(max = 3, message = "이미지는 최대 3장까지 업로드 가능합니다")
+    private List<@NotBlank(message = "이미지 URL은 비어있을 수 없습니다") String> imageUrls;
 }

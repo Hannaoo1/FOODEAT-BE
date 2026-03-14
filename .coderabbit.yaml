@@ -6,6 +6,9 @@ reviews:
   high_level_summary: true
   poem: false
   review_status: true
+  auto_review:
+    enabled: true
+  labeling_instructions: []
   path_instructions:
     - path: "**/*.java"
       instructions: |
@@ -17,3 +20,7 @@ reviews:
 
 chat:
   auto_reply: true
+
+# PR 자동 생성 비활성화 (코드 리뷰만 수행)
+auto_fix:
+  enabled: false
