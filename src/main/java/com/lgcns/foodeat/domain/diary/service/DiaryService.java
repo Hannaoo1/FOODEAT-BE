@@ -7,6 +7,7 @@ import com.lgcns.foodeat.domain.diary.repository.*;
 import com.lgcns.foodeat.domain.user.entity.User;
 import com.lgcns.foodeat.domain.user.repository.UserRepository;
 import com.lgcns.foodeat.global.exception.BusinessException;
+import com.lgcns.foodeat.infra.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.*;
@@ -23,7 +24,16 @@ public class DiaryService {
     private final DiaryRepository diaryRepository;
     private final DiaryImageRepository diaryImageRepository;
     private final UserRepository userRepository;
+    private final S3Service s3Service;
 
+    /**
+     * Create a new diary entry for the given user and persist any provided images.
+     *
+     * @param userId the ID of the user creating the diary
+     * @param request the diary creation payload containing diary fields and optional image URLs
+     * @return the ID of the created diary
+     * @throws BusinessException if the user with the given ID does not exist
+     */
     @Transactional
     public Long createDiary(Long userId, DiaryCreateRequest request) {
         User user = userRepository.findById(userId)
@@ -44,6 +54,19 @@ public class DiaryService {
                 .build();
 
         FoodDiary savedDiary = diaryRepository.save(diary);
+
+        // 이미지 저장
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            for (int i = 0; i < request.getImageUrls().size(); i++) {
+                DiaryImage image = DiaryImage.builder()
+                        .diary(savedDiary)
+                        .imageUrl(request.getImageUrls().get(i))
+                        .displayOrder(i)
+                        .build();
+                diaryImageRepository.save(image);
+            }
+        }
+
         user.incrementDiaryCount();
         return savedDiary.getId();
     }
@@ -96,6 +119,16 @@ public class DiaryService {
                 request.getRating(), request.getComment());
     }
 
+    /**
+     * Delete a diary along with its stored images and decrement the diary owner's count.
+     *
+     * Deletes all images associated with the diary from S3, marks the diary as deleted, and decrements the owner's diary count.
+     *
+     * @param diaryId the ID of the diary to delete
+     * @param userId  the ID of the user attempting the deletion (used for authorization)
+     * @throws BusinessException if no diary exists with the given ID (results in HTTP 404)
+     * @throws BusinessException if the specified user is not the diary owner (results in HTTP 403)
+     */
     @Transactional
     public void deleteDiary(Long diaryId, Long userId) {
         FoodDiary diary = diaryRepository.findByIdAndNotDeleted(diaryId);
@@ -106,6 +139,12 @@ public class DiaryService {
 
         if (!diary.getUser().getId().equals(userId)) {
             throw new BusinessException("권한이 없습니다", HttpStatus.FORBIDDEN);
+        }
+
+        // S3에서 이미지 삭제
+        List<DiaryImage> images = diaryImageRepository.findByDiaryIdOrderByDisplayOrder(diaryId);
+        for (DiaryImage image : images) {
+            s3Service.delete(image.getImageUrl());
         }
 
         diary.delete();
