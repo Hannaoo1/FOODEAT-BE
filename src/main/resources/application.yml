@@ -9,6 +9,9 @@ jwt:
   access-token-expiration: ${JWT_ACCESS_EXPIRATION:7200000}
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:1209600000}
 
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY:your-kakao-rest-api-key}
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
