@@ -41,4 +41,26 @@ public interface DiaryRepository extends JpaRepository<FoodDiary, Long> {
             @Param("longitude") Double longitude,
             @Param("radiusMeters") Double radiusMeters
     );
+
+    /**
+     * 정렬 및 필터링 조회 (동적 쿼리)
+     * 모든 필터 파라미터는 Optional (NULL이면 조건 무시)
+     */
+    @Query("""
+            SELECT d FROM FoodDiary d
+            WHERE d.user.id = :userId
+              AND d.deletedAt IS NULL
+              AND (:category IS NULL OR d.category = :category)
+              AND (:minPrice IS NULL OR d.price >= :minPrice)
+              AND (:maxPrice IS NULL OR d.price <= :maxPrice)
+              AND (:rating IS NULL OR d.rating = :rating)
+            """)
+    Page<FoodDiary> findWithFilters(
+            @Param("userId") Long userId,
+            @Param("category") String category,
+            @Param("minPrice") Integer minPrice,
+            @Param("maxPrice") Integer maxPrice,
+            @Param("rating") Integer rating,
+            Pageable pageable
+    );
 }
