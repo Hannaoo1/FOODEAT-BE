@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,14 +27,6 @@ public class DiaryService {
     private final UserRepository userRepository;
     private final S3Service s3Service;
 
-    /**
-     * Create a new diary entry for the given user and persist any provided images.
-     *
-     * @param userId the ID of the user creating the diary
-     * @param request the diary creation payload containing diary fields and optional image URLs
-     * @return the ID of the created diary
-     * @throws BusinessException if the user with the given ID does not exist
-     */
     @Transactional
     public Long createDiary(Long userId, DiaryCreateRequest request) {
         User user = userRepository.findById(userId)
@@ -71,9 +64,23 @@ public class DiaryService {
         return savedDiary.getId();
     }
 
-    public DiaryPageResponse getDiaries(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<FoodDiary> diaries = diaryRepository.findByUserIdAndNotDeleted(userId, pageable);
+    /**
+     * 식사일지 목록 조회 (정렬 + 필터링)
+     */
+    public DiaryPageResponse getDiaries(Long userId, int page, int size,
+                                        String sort, String category,
+                                        Integer minPrice, Integer maxPrice, Integer rating) {
+        // 정렬 설정 (기본값: 최신순)
+        Sort sortOrder = "price".equals(sort)
+                ? Sort.by(Sort.Direction.ASC, "price")
+                : Sort.by(Sort.Direction.DESC, "visitedAt");
+
+        Pageable pageable = PageRequest.of(page, size, sortOrder);
+
+        // 동적 쿼리로 필터링 조회
+        Page<FoodDiary> diaries = diaryRepository.findWithFilters(
+                userId, category, minPrice, maxPrice, rating, pageable
+        );
 
         Page<DiaryListResponse> diaryPage = diaries.map(diary -> {
             List<DiaryImage> images = diaryImageRepository.findByDiaryIdOrderByDisplayOrder(diary.getId());
@@ -119,16 +126,6 @@ public class DiaryService {
                 request.getRating(), request.getComment());
     }
 
-    /**
-     * Delete a diary along with its stored images and decrement the diary owner's count.
-     *
-     * Deletes all images associated with the diary from S3, marks the diary as deleted, and decrements the owner's diary count.
-     *
-     * @param diaryId the ID of the diary to delete
-     * @param userId  the ID of the user attempting the deletion (used for authorization)
-     * @throws BusinessException if no diary exists with the given ID (results in HTTP 404)
-     * @throws BusinessException if the specified user is not the diary owner (results in HTTP 403)
-     */
     @Transactional
     public void deleteDiary(Long diaryId, Long userId) {
         FoodDiary diary = diaryRepository.findByIdAndNotDeleted(diaryId);
