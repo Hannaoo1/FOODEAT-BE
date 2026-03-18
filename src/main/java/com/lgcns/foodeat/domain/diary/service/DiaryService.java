@@ -69,7 +69,7 @@ public class DiaryService {
      */
     public DiaryPageResponse getDiaries(Long userId, int page, int size,
                                         String sort, String category,
-                                        Integer minPrice, Integer maxPrice, Integer rating) {
+                                        Integer priceRange, Integer rating) {
         // 정렬 설정 (기본값: 작성일 최신순)
         Sort sortOrder;
         if ("price".equals(sort)) {
@@ -81,6 +81,17 @@ public class DiaryService {
         }
 
         Pageable pageable = PageRequest.of(page, size, sortOrder);
+
+        // priceRange를 minPrice, maxPrice로 변환
+        Integer minPrice = null;
+        Integer maxPrice = null;
+        if (priceRange != null) {
+            switch (priceRange) {
+                case 1 -> maxPrice = 10000;           // 1만원 이하
+                case 2 -> { minPrice = 10001; maxPrice = 30000; }  // 1만원~3만원
+                case 3 -> minPrice = 30001;           // 3만원 이상
+            }
+        }
 
         // 동적 쿼리로 필터링 조회
         Page<FoodDiary> diaries = diaryRepository.findWithFilters(

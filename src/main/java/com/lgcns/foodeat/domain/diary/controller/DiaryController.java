@@ -55,13 +55,11 @@ public class DiaryController {
             @RequestParam(required = false) String sort,
             @Parameter(description = "카테고리 필터: 한식, 양식, 중식, 일식")
             @RequestParam(required = false) String category,
-            @Parameter(description = "최소 가격 필터")
-            @RequestParam(required = false) Integer minPrice,
-            @Parameter(description = "최대 가격 필터")
-            @RequestParam(required = false) Integer maxPrice,
+            @Parameter(description = "가격대 필터: 1(1만원 이하), 2(1만원~3만원), 3(3만원 이상)")
+            @RequestParam(required = false) Integer priceRange,
             @Parameter(description = "별점 필터 (1~5)")
             @RequestParam(required = false) Integer rating) {
-        return ResponseEntity.ok(diaryService.getDiaries(userId, page, size, sort, category, minPrice, maxPrice, rating));
+        return ResponseEntity.ok(diaryService.getDiaries(userId, page, size, sort, category, priceRange, rating));
     }
 
     @Operation(summary = "식사 일지 상세 조회")
