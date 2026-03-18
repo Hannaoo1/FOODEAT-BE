@@ -7,6 +7,7 @@ import com.lgcns.foodeat.domain.diary.dto.response.DiaryPageResponse;
 import com.lgcns.foodeat.domain.diary.dto.response.DiaryResponse;
 import com.lgcns.foodeat.domain.diary.service.DiaryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -40,7 +41,7 @@ public class DiaryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(DiaryCreateResponse.of(diaryId));
     }
 
-    @Operation(summary = "식사 일지 목록 조회 (무한 스크롤)")
+    @Operation(summary = "식사 일지 목록 조회 (정렬 + 필터링)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content)
@@ -49,8 +50,18 @@ public class DiaryController {
     public ResponseEntity<DiaryPageResponse> getDiaries(
             @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(diaryService.getDiaries(userId, page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "정렬 기준: 기본값(작성일순), visitedAt(방문일순), price(가격낮은순)")
+            @RequestParam(required = false) String sort,
+            @Parameter(description = "카테고리 필터: 한식, 양식, 중식, 일식")
+            @RequestParam(required = false) String category,
+            @Parameter(description = "최소 가격 필터")
+            @RequestParam(required = false) Integer minPrice,
+            @Parameter(description = "최대 가격 필터")
+            @RequestParam(required = false) Integer maxPrice,
+            @Parameter(description = "별점 필터 (1~5)")
+            @RequestParam(required = false) Integer rating) {
+        return ResponseEntity.ok(diaryService.getDiaries(userId, page, size, sort, category, minPrice, maxPrice, rating));
     }
 
     @Operation(summary = "식사 일지 상세 조회")

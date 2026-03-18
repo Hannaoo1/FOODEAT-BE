@@ -70,10 +70,15 @@ public class DiaryService {
     public DiaryPageResponse getDiaries(Long userId, int page, int size,
                                         String sort, String category,
                                         Integer minPrice, Integer maxPrice, Integer rating) {
-        // 정렬 설정 (기본값: 최신순)
-        Sort sortOrder = "price".equals(sort)
-                ? Sort.by(Sort.Direction.ASC, "price")
-                : Sort.by(Sort.Direction.DESC, "visitedAt");
+        // 정렬 설정 (기본값: 작성일 최신순)
+        Sort sortOrder;
+        if ("price".equals(sort)) {
+            sortOrder = Sort.by(Sort.Direction.ASC, "price");
+        } else if ("visitedAt".equals(sort)) {
+            sortOrder = Sort.by(Sort.Direction.DESC, "visitedAt");
+        } else {
+            sortOrder = Sort.by(Sort.Direction.DESC, "createdAt");
+        }
 
         Pageable pageable = PageRequest.of(page, size, sortOrder);
 
