@@ -39,6 +39,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
+                .homeAddress(request.getHomeAddress())
                 .homeLatitude(request.getHomeLatitude())
                 .homeLongitude(request.getHomeLongitude())
                 .build();
