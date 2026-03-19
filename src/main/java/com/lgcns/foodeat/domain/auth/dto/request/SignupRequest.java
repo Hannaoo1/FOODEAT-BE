@@ -20,6 +20,8 @@ public class SignupRequest {
 
     @NotBlank
     private String nickname;
+
+    private String homeAddress;
     private Double homeLatitude;
     private Double homeLongitude;
 }
