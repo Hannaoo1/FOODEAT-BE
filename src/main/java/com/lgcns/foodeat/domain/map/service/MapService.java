@@ -6,7 +6,6 @@ import com.lgcns.foodeat.domain.diary.repository.DiaryImageRepository;
 import com.lgcns.foodeat.domain.diary.repository.DiaryRepository;
 import com.lgcns.foodeat.domain.map.dto.response.MapDiariesResponse;
 import com.lgcns.foodeat.domain.map.dto.response.MapDiaryResponse;
-import com.lgcns.foodeat.infra.kakao.KakaoGeoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,6 @@ public class MapService {
 
     private final DiaryRepository diaryRepository;
     private final DiaryImageRepository diaryImageRepository;
-    private final KakaoGeoService kakaoGeoService;
 
     public MapDiariesResponse getDiariesInRadius(Long userId, Double latitude, Double longitude, Integer radiusKm) {
         // km -> m 변환
@@ -45,9 +43,6 @@ public class MapService {
                 })
                 .toList();
 
-        // 카카오 역지오코딩으로 지역명(동) 조회
-        String regionName = kakaoGeoService.getRegionName(latitude, longitude);
-
-        return MapDiariesResponse.of(regionName, radiusKm, diaryResponses);
+        return MapDiariesResponse.of(radiusKm, diaryResponses);
     }
 }
